@@ -72,6 +72,35 @@ st.set_page_config(page_title="SGX Analyzer Pro", layout="wide")
 st.title("🇸🇬 SGX Value Tracker 2026")
 engine = SGXEngine()
 
+# --- NEW: SIDEBAR DEBUG & TOOLS ---
+with st.sidebar:
+    st.header("Settings & Debug")
+    
+    # 1. Debug Connection Status
+    if st.checkbox("Show Technical Debug"):
+        st.write("Checking connection to Yahoo...")
+        # Test with a reliable ticker
+        test_stock = yf.Ticker("D05.SI")
+        try:
+            keys = list(test_stock.info.keys())
+            if len(keys) > 0:
+                st.success(f"Connection Live: {len(keys)} metrics found.")
+            else:
+                st.error("Connection Blocked: Yahoo returned 0 metrics.")
+        except Exception as e:
+            st.error(f"Connection Error: {e}")
+
+    st.divider()
+    
+    # 2. Force Global Refresh
+    if st.button("🔄 Clear App Cache"):
+        st.cache_data.clear()
+        st.success("Cache Cleared!")
+        st.rerun()
+
+    st.divider()
+    st.caption("App Version: 2.1 (2026 Build)")
+
 # Initialize Watchlist from storage
 if 'watchlist' not in st.session_state:
     st.session_state.watchlist = load_watchlist()
@@ -155,3 +184,4 @@ with tab2:
 # --- 5. FOOTER ---
 st.divider()
 st.caption("SGX Analyzer 2026 | Built for Mobile | Data by Yahoo Finance")
+
