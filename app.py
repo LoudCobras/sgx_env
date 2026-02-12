@@ -2,6 +2,26 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 
+# Add this above your fetch_stock_data function
+@st.cache_data(ttl=300) # This remembers data for 300 seconds (5 mins)
+def fetch_stock_data(self, ticker):
+    symbol = ticker if ticker.endswith(".SI") else ticker + ".SI"
+    stock = yf.Ticker(symbol)
+    # ... rest of your code ...
+    info = stock.info
+    return {
+        "symbol": symbol,
+        "name": info.get("longName", "Unknown"),
+        "price": info.get("currentPrice", 0),
+        "pe": info.get("trailingPE", "N/A"),
+        "div": info.get("dividendRate", 0),
+        "bv": info.get("bookValue", 1),
+        "roe": info.get("returnOnEquity", 0) * 100,
+        "cash": info.get("totalCash", 0),
+        "debt": info.get("totalDebt", 0),
+    }
+
+
 # --- CORE ENGINE LOGIC ---
 class SGXEngine:
     @staticmethod
@@ -29,26 +49,6 @@ class SGXEngine:
         if net_cash > 0:
             score += 2
         return score
-
-    # Add this above your fetch_stock_data function
-    @st.cache_data(ttl=300) # This remembers data for 300 seconds (5 mins)
-    def fetch_stock_data(self, ticker):
-        symbol = ticker if ticker.endswith(".SI") else ticker + ".SI"
-        stock = yf.Ticker(symbol)
-        # ... rest of your code ...
-        info = stock.info
-        return {
-            "symbol": symbol,
-            "name": info.get("longName", "Unknown"),
-            "price": info.get("currentPrice", 0),
-            "pe": info.get("trailingPE", "N/A"),
-            "div": info.get("dividendRate", 0),
-            "bv": info.get("bookValue", 1),
-            "roe": info.get("returnOnEquity", 0) * 100,
-            "cash": info.get("totalCash", 0),
-            "debt": info.get("totalDebt", 0),
-        }
-
 
 # --- STREAMLIT UI ---
 st.set_page_config(page_title="SGX Analyzer", layout="centered")
@@ -107,5 +107,6 @@ with tab2:
             st.rerun()
     else:
         st.write("Watchlist is empty.")
+
 
 
