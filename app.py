@@ -58,7 +58,11 @@ engine = SGXEngine()
 
 # Initialize session state for Watchlist
 if 'watchlist' not in st.session_state:
-    st.session_state.watchlist = ["D05", "Z74"]
+    st.session_state.watchlist = [
+        {"Ticker":"D05.SI","Name":"DBS Group Holdings Ltd 星展银行"}, 
+        {"Ticker":"Z74.SI","Name":"Singtel 新电信"},
+        {"Ticker":"U11.SI","Name":"United Overseas Bank (UOB) 大华银行"}
+    ]
 
 tab1, tab2 = st.tabs(["🔍 Search", "📋 Watchlist"])
 
@@ -75,28 +79,45 @@ with tab1:
             c1.write(f"**P/E:** {data['pe']}")
             c2.write(f"**Yield:** {(data['div']/data['price'])*100:.1f}%")
             
-            if st.button("➕ Add to Watchlist"):
-                if ticker_input not in st.session_state.watchlist:
-                    st.session_state.watchlist.append(ticker_input)
-                    st.success(f"Added {ticker_input}!")
+        if st.button("➕ Add to Watchlist"):
+            # Check if ticker already exists in our list of dictionaries
+            exists = any(item['Ticker'] == data['symbol'] for item in st.session_state.watchlist)
+        if not exists:
+            st.session_state.watchlist.append({
+                "Ticker": data['symbol'], 
+                "Name": data['name']
+            })
+            st.success(f"Added {data['name']} to your list!")
+        else:
+            st.warning("This stock is already in your watchlist.")
         else:
             st.error("Data fetch failed. Ticker might be wrong or Yahoo is busy.")
 
 with tab2:
-    st.subheader("Saved Stocks")
+    st.subheader("Your Portfolio Watchlist")
+    
     if st.session_state.watchlist:
-        rows = []
-        for t in st.session_state.watchlist:
-            d = fetch_safe_data(t)  # Now using the safe standalone function
-            if d:  # FIXED: Only add to table if data actually exists!
-                s = engine.get_score(d)
-                rows.append({"Ticker": t, "Price": f"S${d['price']:.2f}", "Score": f"{s}/10"})
+        watchlist_display = []
         
-        if rows:
-            st.table(pd.DataFrame(rows))
-        else:
-            st.warning("Could not load data for stocks in your list.")
+        for item in st.session_state.watchlist:
+            # Re-fetch live data for the price/score refresh
+            d = fetch_safe_data(item['Ticker'])
+            if d:
+                score = engine.get_score(d)
+                watchlist_display.append({
+                    "Ticker": item['Ticker'],
+                    "Company Name": item['Name'],  # Now using the saved name
+                    "Price": f"S${d['price']:.2f}",
+                    "Score": f"{score}/10"
+                })
         
-        if st.button("🗑️ Clear Watchlist"):
+        if watchlist_display:
+            # Convert to DataFrame for a clean table
+            df = pd.DataFrame(watchlist_display)
+            st.dataframe(df, use_container_width=True, hide_index=True)
+        
+        if st.button("🗑️ Clear All"):
             st.session_state.watchlist = []
             st.rerun()
+    else:
+        st.info("Your watchlist is empty. Add stocks from the Search tab!")
