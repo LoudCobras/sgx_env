@@ -90,8 +90,8 @@ with tab1:
             st.success(f"Added {data['name']} to your list!")
         else:
             st.warning("This stock is already in your watchlist.")
-        else:
-            st.error("Data fetch failed. Ticker might be wrong or Yahoo is busy.")
+    else:
+        st.error("Data fetch failed. Ticker might be wrong or Yahoo is busy.")
 
 with tab2:
     st.subheader("Your Portfolio Watchlist")
@@ -121,3 +121,4 @@ with tab2:
             st.rerun()
     else:
         st.info("Your watchlist is empty. Add stocks from the Search tab!")
+
