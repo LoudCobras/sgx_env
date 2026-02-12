@@ -82,16 +82,16 @@ with tab1:
         if st.button("➕ Add to Watchlist"):
             # Check if ticker already exists in our list of dictionaries
             exists = any(item['Ticker'] == data['symbol'] for item in st.session_state.watchlist)
-        if not exists:
-            st.session_state.watchlist.append({
-                "Ticker": data['symbol'], 
-                "Name": data['name']
-            })
-            st.success(f"Added {data['name']} to your list!")
+            if not exists:
+                st.session_state.watchlist.append({
+                    "Ticker": data['symbol'], 
+                    "Name": data['name']
+                })
+                st.success(f"Added {data['name']} to your list!")
+            else:
+                st.warning("This stock is already in your watchlist.")
         else:
-            st.warning("This stock is already in your watchlist.")
-    else:
-        st.error("Data fetch failed. Ticker might be wrong or Yahoo is busy.")
+            st.error("Data fetch failed. Ticker might be wrong or Yahoo is busy.")
 
 with tab2:
     st.subheader("Your Portfolio Watchlist")
@@ -121,4 +121,5 @@ with tab2:
             st.rerun()
     else:
         st.info("Your watchlist is empty. Add stocks from the Search tab!")
+
 
