@@ -2,12 +2,6 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 
-@st.cache_data(ttl=300) # This remembers data for 300 seconds (5 mins)
-def fetch_stock_data(self, ticker):
-    symbol = ticker if ticker.endswith(".SI") else ticker + ".SI"
-    stock = yf.Ticker(symbol)
-    # ... rest of your code ...
-
 # --- CORE ENGINE LOGIC ---
 class SGXEngine:
     @staticmethod
@@ -36,9 +30,12 @@ class SGXEngine:
             score += 2
         return score
 
+    # Add this above your fetch_stock_data function
+    @st.cache_data(ttl=300) # This remembers data for 300 seconds (5 mins)
     def fetch_stock_data(self, ticker):
         symbol = ticker if ticker.endswith(".SI") else ticker + ".SI"
         stock = yf.Ticker(symbol)
+        # ... rest of your code ...
         info = stock.info
         return {
             "symbol": symbol,
@@ -110,4 +107,5 @@ with tab2:
             st.rerun()
     else:
         st.write("Watchlist is empty.")
+
 
