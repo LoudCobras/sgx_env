@@ -85,7 +85,7 @@ with tab2:
                 
                 raw_rows.append({
                     "Ticker": d['symbol'].replace(".SI", ""),
-                    "Company": d['name'][:15], # Shorten for mobile
+                    "Company": d['name'][:15], 
                     "Price": d['price'],
                     "P/E": d['pe'] if d['pe'] != 0 else "N/A",
                     "P/B": round(pb_v, 2),
@@ -94,19 +94,28 @@ with tab2:
                     "Net Cash (M)": round(net_c / 1_000_000, 1)
                 })
         
-        df = pd.DataFrame(raw_rows)
+        if raw_rows:
+            df = pd.DataFrame(raw_rows)
 
-        # Style the dataframe to highlight good values
-        def color_values(val):
-            if isinstance(val, (int, float)):
-                # Yield > 5% is green
-                if 5 <= val <= 100: return 'color: #2ecc71; font-weight: bold'
-                # P/B < 1.0 is green
-                if 0 < val < 1.0: return 'color: #2ecc71; font-weight: bold'
-            return ''
+            # --- ADDED: SORTING FEATURE ---
+            sort_col = st.selectbox("Sort by:", ["Yield %", "P/B", "Price", "ROE %"], index=0)
+            df = df.sort_values(by=sort_col, ascending=False if "Yield" in sort_col else True)
 
-        st.dataframe(df.style.applymap(color_values, subset=['P/B', 'Yield %']), 
-                     use_container_width=True, hide_index=True)
+            # --- FIXED: SAFE STYLING ---
+            def color_values(val):
+                if isinstance(val, (int, float)):
+                    if 5 <= val <= 100: return 'color: #2ecc71; font-weight: bold'
+                    if 0 < val < 1.0: return 'color: #2ecc71; font-weight: bold'
+                return ''
+
+            # We check if columns exist before applying style to prevent KeyError
+            target_cols = [col for col in ['P/B', 'Yield %'] if col in df.columns]
+            
+            if target_cols:
+                st.dataframe(df.style.applymap(color_values, subset=target_cols), 
+                             use_container_width=True, hide_index=True)
+            else:
+                st.dataframe(df, use_container_width=True, hide_index=True)
         
         if st.button("🗑️ Clear List"):
             st.session_state.watchlist = []
